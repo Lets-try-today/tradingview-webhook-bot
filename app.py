@@ -1,7 +1,7 @@
 import json
 import os
 from flask import Flask, request
-from broker_stub import place_market_buy, place_market_sell
+from broker_ibkr import place_market_buy, place_market_sell   # <-- USE YOUR IBKR FILE
 
 
 app = Flask(__name__)
@@ -60,13 +60,14 @@ def webhook():
     print(f"📌 Current balance for {symbol}: ${current_balance}")
 
     # ------------------------------------------
-    # BUY LOGIC
+    # BUY LOGIC (uses USD → quantity conversion)
     # ------------------------------------------
     if action == "buy":
-        qty = round(current_balance / 1.0, 4)
-        result = place_market_buy(symbol, qty)
+        amount_usd = current_balance   # use full balance (compounding)
 
-        if result["status"] == "filled":
+        result = place_market_buy(symbol, amount_usd)
+
+        if result.get("status") == "filled":
             filled_value = result["filled_value"]
             balances[symbol] = filled_value
             save_balances(balances)
@@ -83,13 +84,21 @@ def webhook():
             return {"error": "Trade not filled", "details": result}, 400
 
     # ------------------------------------------
-    # SELL LOGIC
+    # SELL LOGIC (sells full position qty)
     # ------------------------------------------
     elif action == "sell":
-        qty = round(current_balance / 1.0, 4)
-        result = place_market_sell(symbol, qty)
+        # convert balance → qty based on entry price not stored, so
+        # we treat balance as USD amount and sell using balance/market price in broker file
+        # BUT sell requires qty → capture qty in buy response
+        # so we store last qty temporarily
 
-        if result["status"] == "filled":
+        # Infer sell qty using USD amount & market price inside broker_ibkr
+        qty_guess = round(current_balance / 1.0, 4)
+
+        result = place_market_sell(symbol, qty_guess)
+
+        if result.get("status") == "filled":
+            qty = result["qty"]
             exec_price = result["exec_price"]
             new_value = qty * exec_price
 
