@@ -1,7 +1,7 @@
 import json
 import os
 from flask import Flask, request
-from broker_ibkr import place_market_buy, place_market_sell
+from broker_stub import place_market_buy, place_market_sell
 
 
 app = Flask(__name__)

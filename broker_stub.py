@@ -1,22 +1,20 @@
-import time
+import json
 import random
+import time
 
 def place_market_buy(symbol, qty):
-    time.sleep(0.2)
-    exec_price = round(random.uniform(1.0, 1.2), 2)
-    filled_value = qty * exec_price
+    """Simulated buy order - works on Render cloud."""
+    time.sleep(0.1)
     return {
         "status": "filled",
-        "filled_qty": qty,
-        "filled_value": filled_value,
-        "exec_price": exec_price
+        "filled_value": round(qty * 1.02, 2),  # Simulated 2% profit
+        "exec_price": round(50 + random.random() * 20, 2)
     }
 
 def place_market_sell(symbol, qty):
-    time.sleep(0.2)
-    exec_price = round(random.uniform(1.0, 1.3), 2)
+    """Simulated sell order - works on Render cloud."""
+    time.sleep(0.1)
     return {
         "status": "filled",
-        "filled_qty": qty,
-        "exec_price": exec_price
+        "exec_price": round(50 + random.random() * 20, 2)
     }
