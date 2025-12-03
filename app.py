@@ -1,7 +1,11 @@
 import json
 import os
 from flask import Flask, request
+<<<<<<< HEAD
+from broker_ibkr import place_market_buy, place_market_sell
+=======
 from broker_stub import place_market_buy, place_market_sell
+>>>>>>> 2249c850d717225bc86c81a807b5d24f44aae7a7
 
 app = Flask(__name__)
 
