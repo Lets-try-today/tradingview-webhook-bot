@@ -6,16 +6,7 @@ from broker_ibkr import place_market_buy, place_market_sell
 
 app = Flask(__name__)
 
-CONFIG_FILE = "config.json"
 BALANCE_FILE = "balances.json"
-
-
-# ------------------------------
-# Load config.json (stocks + initial balances)
-# ------------------------------
-def load_config():
-    with open(CONFIG_FILE, "r") as f:
-        return json.load(f)
 
 
 # ------------------------------
@@ -23,12 +14,9 @@ def load_config():
 # ------------------------------
 def load_balances():
     if not os.path.exists(BALANCE_FILE):
-        cfg = load_config()
-        balances = cfg["initial_balances"]
-
+        balances = {"UAVS": 150, "UPXI": 150}
         with open(BALANCE_FILE, "w") as f:
             json.dump(balances, f, indent=4)
-
         return balances
 
     with open(BALANCE_FILE, "r") as f:
@@ -60,18 +48,13 @@ def webhook():
     action = action.lower().strip()
     symbol = symbol.upper().strip()
 
-    config = load_config()
-    allowed_stocks = config["stocks"]
     balances = load_balances()
+    allowed_stocks = list(balances.keys())
 
     # Check allowed stock
     if symbol not in allowed_stocks:
         print(f"❌ ERROR: {symbol} is not in allowed stocks list.")
         return {"error": f"{symbol} not allowed"}, 400
-
-    # Ensure stock has a balance entry
-    if symbol not in balances:
-        balances[symbol] = config["initial_balances"].get(symbol, 150)
 
     current_balance = balances[symbol]
     print(f"📌 Current balance for {symbol}: ${current_balance}")
@@ -80,12 +63,12 @@ def webhook():
     # BUY LOGIC
     # ------------------------------------------
     if action == "buy":
-        qty = round(current_balance / 1.0, 4)   # fake qty (stub)
+        qty = round(current_balance / 1.0, 4)
         result = place_market_buy(symbol, qty)
 
         if result["status"] == "filled":
             filled_value = result["filled_value"]
-            balances[symbol] = filled_value  # compounding
+            balances[symbol] = filled_value
             save_balances(balances)
 
             print(f"✅ BUY Filled for {symbol} at ${result['exec_price']}")
@@ -99,7 +82,7 @@ def webhook():
 
     # ------------------------------------------
     # SELL LOGIC
-    # ------------------------------------------
+    # -------------------------------
     elif action == "sell":
         qty = round(current_balance / 1.0, 4)
         result = place_market_sell(symbol, qty)
