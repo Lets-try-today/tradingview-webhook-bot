@@ -52,35 +52,6 @@ def webhook():
     allowed_stocks = list(balances.keys())
 
     # Check allowed stock
-    if symbol not in allowed_stocks:
-        print(f"❌ ERROR: {symbol} is not in allowed stocks list.")
-        return {"error": f"{symbol} not allowed"}, 400
-
-    current_balance = balances[symbol]
-    print(f"📌 Current balance for {symbol}: ${current_balance}")
-
-    # ------------------------------------------
-    # BUY LOGIC
-    # ------------------------------------------
-    if action == "buy":
-        qty = round(current_balance / 1.0, 4)
-        result = place_market_buy(symbol, qty)
-
-        if result["status"] == "filled":
-            filled_value = result["filled_value"]
-            balances[symbol] = filled_value
-            save_balances(balances)
-
-            print(f"✅ BUY Filled for {symbol} at ${result['exec_price']}")
-            print(f"💰 New compounded balance: ${balances[symbol]}")
-
-            return {
-                "status": "BUY OK",
-                "symbol": symbol,
-                "new_balance": balances[symbol]
-            }
-
-    # ------------------------------------------
     # SELL LOGIC
     # -------------------------------
     elif action == "sell":
@@ -111,4 +82,53 @@ def webhook():
 # Start Flask (only local)
 # ------------------------------
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=5000)    # ------------------------------------------
+    # BUY LOGIC
+    # ------------------------------------------
+    if action == "buy":
+        qty = round(current_balance / 1.0, 4)
+        result = place_market_buy(symbol, qty)
+
+        if result["status"] == "filled":
+            filled_value = result["filled_value"]
+            balances[symbol] = filled_value
+            save_balances(balances)
+
+            print(f"✅ BUY Filled for {symbol} at ${result['exec_price']}")
+            print(f"💰 New compounded balance: ${balances[symbol]}")
+
+            return {
+                "status": "BUY OK",
+                "symbol": symbol,
+                "new_balance": balances[symbol]
+            }
+        else:
+            return {"error": "Trade not filled", "details": result}, 400
+
+    # ------------------------------------------
+    # SELL LOGIC
+    # ------------------------------------------
+    elif action == "sell":
+        qty = round(current_balance / 1.0, 4)
+        result = place_market_sell(symbol, qty)
+
+        if result["status"] == "filled":
+            exec_price = result["exec_price"]
+            new_value = qty * exec_price
+
+            balances[symbol] = new_value
+            save_balances(balances)
+
+            print(f"✅ SELL Filled for {symbol} at ${exec_price}")
+            print(f"💰 New compounded balance: ${balances[symbol]}")
+
+            return {
+                "status": "SELL OK",
+                "symbol": symbol,
+                "new_balance": balances[symbol]
+            }
+        else:
+            return {"error": "Trade not filled", "details": result}, 400
+
+    else:
+        return {"error": "Invalid action"}, 400
