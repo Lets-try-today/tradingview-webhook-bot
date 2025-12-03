@@ -6,7 +6,7 @@ import time
 def connect_ibkr():
     try:
         ib = IB()
-        ib.connect("127.0.0.1", 7494, clientId=1)  # PAPER TWS
+        ib.connect("127.0.0.1", 7497, clientId=1)  # PAPER TWS
         print("Connected to IBKR TWS")
         return ib
     except Exception as e:
