@@ -1,4 +1,4 @@
 {
-    "UAVS": 150,
-    "UPXI": 150
+  "UAVS": { "balance": 150, "qty": 0, "entry_price": 0 },
+  "UPXI": { "balance": 150, "qty": 0, "entry_price": 0 }
 }
